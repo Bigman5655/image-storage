@@ -1,0 +1,33 @@
+<%- include('_header.ejs', { title: "Админ-панель" }); %>
+    <h1>Админ-панель</h1>
+    <h3>Панель управления Image Storage</h3>
+    <a href="/">На главную</a>
+    <hr><div>
+        <h4>Пользователи</h4>
+        <div>
+            <% for (let user of users) { %>
+                <br><b>[ID: <%- user.id %>]</b> <span style="color: red;"><%- user.username %></span>
+            <% } %>
+        </div>
+    </div>
+    <hr><div>
+        <h4>Инвайт-коды <span style="color: red; cursor: pointer;" onclick="createInvite()">Создать</span> <span style="color: red; cursor: pointer;" onclick="truncateInvites()">Очистить</span></h4>
+        <div>
+            <% for (let invite of invites) { %>
+                <span id="invite-<%- invite.code %>">
+                    <br><b>[ID: <%- invite.id %>]</b> <span style="color: red;"><%- invite.code %></span> (Использований: <span style="color: red;"><%- invite.uses %></span>) <span style="color: red; cursor: pointer;" onclick="deleteInvite('<%- invite.code %>')">Удалить</span>
+                </span>
+            <% } %>
+        </div>
+    </div>
+    <hr><div>
+        <h4>Загрузки</h4>
+        <div>
+            <% for (let upload of uploads) { author = users.find(user => user.id == upload.author); %>
+                <span id="file-<%- upload.id %>">
+                    <br><b>[ID: <%- upload.id %>]</b> <a href="/uploads/<%- upload.code %>" style="color: red;" target="_blank"><%- upload.code %></a> (<%= upload.path %>) | Автор файла: <span style="color: red;"><%- author ? author.username : `Invalid user: ID ${upload.author}` %></span>
+                </span>
+            <% } %>
+        </div>
+    </div>
+<%- include('_footer.ejs'); %>

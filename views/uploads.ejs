@@ -1,0 +1,12 @@
+<%- include('_header.ejs', { title: "Мои файлы" }); %>
+    <h1>Мои файлы</h1>
+    <h3>Все ваши файлы, которые вы загружали когда-либо</h3>
+    <a href="/">На главную</a>
+    <hr><div>
+        <% for (let upload of uploads) { %>
+            <span id="file-<%- upload.id %>">
+                <br><b>[ID: <%- upload.id %>]</b> <a href="/uploads/<%- upload.code %>" style="color: red;" target="_blank"><%- upload.code %></a> (<%= upload.path %>) <span style="color: red; cursor: pointer;" onclick="deleteFile('<%- upload.id %>')">Удалить</span>
+            </span>
+        <% } %>
+    </div>
+<%- include('_footer.ejs'); %>

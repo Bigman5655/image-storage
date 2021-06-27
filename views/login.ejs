@@ -1,0 +1,11 @@
+<%- include('_header.ejs', { title: "Авторизация" }); %>
+    <h1>Авторизация</h1>
+    <h3>Для дальнейшей работы на сайте требуется авторизация.</h3>
+    <form onsubmit="return false;">
+        <input type="text" id="username" placeholder="Имя пользователя" required>
+        <br><input type="password" id="password" placeholder="Пароль" required>
+        <hr><button type="submit" onclick="login();">Авторизация</button>
+    </form>
+    Впервые на сайте? <a href="/register">Регистрация</a>
+    <b id="frontAlert"></b>
+<%- include('_footer.ejs'); %>

@@ -1,0 +1,10 @@
+<%- include('_header.ejs', { title: "Главная страница" }); %>
+    <h1>Главная страница</h1>
+    <h3>Выберите кнопку ниже для выполнения действий</h3>
+    <div>
+        <% if(session.isAdmin) { %><br><a href="/admin">Админ-панель</a><% } %>
+        <br><a href="/api/uploads/create" target="_blank">Конфиг для ShareX</a>
+        <br><a href="/uploads">Мои файлы</a>
+        <br><a href="/logout">Выйти из аккаунта</a>
+    </div>
+<%- include('_footer.ejs'); %>
