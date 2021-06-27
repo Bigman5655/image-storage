@@ -25,7 +25,9 @@ SOFTWARE.
 const config = require('./config.json');
 const crypto = require('./crypto')(config.database.encrypt_key);
 
-const { Sequelize } = require('sequelize');
+const {
+    Sequelize
+} = require('sequelize');
 const sequelize = new Sequelize(config.database.database_name, config.database.username, config.database.password, {
     host: config.database.host,
     dialect: config.database.dialect,
@@ -45,13 +47,18 @@ authenticate();
 const User = require('./models/user')(sequelize);
 const Invite = require('./models/invite')(sequelize);
 const Upload = require('./models/uploads')(sequelize);
-sequelize.sync({ alter: true });
+sequelize.sync({
+    alter: true
+});
 
 const jwt = require('jsonwebtoken');
 const sessionCheck = (req, res, next) => {
-    if(!req.cookies.session_hash) return res.redirect('/login');
+    if (!req.cookies.session_hash) return res.redirect('/login');
     jwt.verify(req.cookies.session_hash, config.session_secret, (err) => {
-        if(err) return res.status(500).render('_error', { code: 500, message: `Ошибка сессии: <b><%- err.name %></b><br><a href="/logout">Может поможет выход из аккаунта?</a>` });
+        if (err) return res.status(500).render('_error', {
+            code: 500,
+            message: `Ошибка сессии: <b><%- err.name %></b><br><a href="/logout">Может поможет выход из аккаунта?</a>`
+        });
         return next();
     });
 };
@@ -66,13 +73,17 @@ const storage = Multer.diskStorage({
     }
 });
 const fileFilter = (req, file, cb) => {
-    if(!config.allowed_mimetypes.includes(file.mimetype))
+    if (!config.allowed_mimetypes.includes(file.mimetype))
         return cb(new Error("Разрешена загрузка файлов только PNG, JPG, JPEG и GIF форматов."));
 
     return cb(null, true);
 };
 
-const multer = Multer({ storage, limits: config.limits, fileFilter });
+const multer = Multer({
+    storage,
+    limits: config.limits,
+    fileFilter
+});
 const express = require('express');
 const app = express();
 
@@ -82,90 +93,160 @@ app.use('/static', express.static('static'));
 
 app.get('/', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    return res.render('index', { session });
+    return res.render('index', {
+        session
+    });
 });
 
 app.get('/uploads', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
     const uploads = await Upload.findAll({
-        where: { author: session.id }
+        where: {
+            author: session.id
+        }
     });
 
-    return res.render('uploads', { session, uploads });
+    return res.render('uploads', {
+        session,
+        uploads
+    });
 });
 
 app.get('/admin', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    if(!session.isAdmin) return res.status(403).render('_error', { code: 403, message: "Доступ к данной странице ограничен." });
+    if (!session.isAdmin) return res.status(403).render('_error', {
+        code: 403,
+        message: "Доступ к данной странице ограничен."
+    });
 
     const users = await User.findAll();
     const uploads = await Upload.findAll();
     const invites = await Invite.findAll();
-    return res.render('admin', { session, users, uploads, invites });
+    return res.render('admin', {
+        session,
+        users,
+        uploads,
+        invites
+    });
 });
 
 app.get('/login', async (req, res) => {
-    if(req.cookies.session_hash) return res.redirect('/');
+    if (req.cookies.session_hash) return res.redirect('/');
     return res.render('login');
 });
 
 app.get('/register', async (req, res) => {
-    if(req.cookies.session_hash) return res.redirect('/');
+    if (req.cookies.session_hash) return res.redirect('/');
     return res.render('register');
 });
 
 app.get('/uploads/:code', async (req, res) => {
-    let { code } = req.params;
+    let {
+        code
+    } = req.params;
     const uploads = await Upload.findAll({
-        where: { code }
+        where: {
+            code
+        }
     });
-    if(!uploads.length) return res.status(404).render('_error', { code: 404, message: "Изображение не найдено." });
+    if (!uploads.length) return res.status(404).render('_error', {
+        code: 404,
+        message: "Изображение не найдено."
+    });
 
     return res.sendFile(`${__dirname}/${uploads[0].path}`);
 });
 
 app.get('/logout', (req, res) => {
-    res.cookie('session_hash', null, { maxAge: -1 });
+    res.cookie('session_hash', null, {
+        maxAge: -1
+    });
     return res.redirect('/');
 });
 
 app.post('/api/login', [express.json()], async (req, res) => {
-    let { username, password } = req.body;
+    let {
+        username,
+        password
+    } = req.body;
     const users = await User.findAll({
-        where: { username }
+        where: {
+            username
+        }
     });
-    if(!users.length) return res.json({ ok: false, message: "Пользователя с такими данными не существует." });
+    if (!users.length) return res.json({
+        ok: false,
+        message: "Пользователя с такими данными не существует."
+    });
 
-    const realPassword = crypto.decrypt({ content: users[0].password, iv: users[0].iv });
-    if(password !== realPassword) return res.json({ ok: false, message: "Неверный пароль." });
+    const realPassword = crypto.decrypt({
+        content: users[0].password,
+        iv: users[0].iv
+    });
+    if (password !== realPassword) return res.json({
+        ok: false,
+        message: "Неверный пароль."
+    });
 
-    res.cookie('session_hash', jwt.sign({ id: users[0].id, isAdmin: Boolean(users[0].isAdmin) }, config.session_secret), { maxAge: 604800000 });
-    return res.json({ ok: true, message: "Успешная авторизация!" });
+    res.cookie('session_hash', jwt.sign({
+        id: users[0].id,
+        isAdmin: Boolean(users[0].isAdmin)
+    }, config.session_secret), {
+        maxAge: 604800000
+    });
+    return res.json({
+        ok: true,
+        message: "Успешная авторизация!"
+    });
 });
 
 app.post('/api/register', [express.json()], async (req, res) => {
-    let { username, password, code } = req.body;
-    if(!username || !password || !code) return res.json({ ok: false, message: "Форма пуста." });
+    let {
+        username,
+        password,
+        code
+    } = req.body;
+    if (!username || !password || !code) return res.json({
+        ok: false,
+        message: "Форма пуста."
+    });
 
     const invites = await Invite.findAll({
-        where: { code }
+        where: {
+            code
+        }
     });
-    if(!invites.length || (invites[0] && !invites[0].uses))
-        return res.json({ ok: false, message: "Недействительный инвайт-код." });
-    
+    if (!invites.length || (invites[0] && !invites[0].uses))
+        return res.json({
+            ok: false,
+            message: "Недействительный инвайт-код."
+        });
+
     const users = await User.findAll({
-        where: { username }
+        where: {
+            username
+        }
     });
-    if(users.length) return res.json({ ok: false, message: "Пользователь с таким именем уже существует." });
+    if (users.length) return res.json({
+        ok: false,
+        message: "Пользователь с таким именем уже существует."
+    });
 
     const encrypted = crypto.encrypt(Buffer.from(password, 'utf8'));
-    const user = User.build({ username, password: encrypted.content, iv: encrypted.iv });
+    const user = User.build({
+        username,
+        password: encrypted.content,
+        iv: encrypted.iv
+    });
     user.save();
 
     invites[0].uses -= 1;
     invites[0].save();
 
-    return res.json({ ok: true, message: "Успешная регистрация!" });
+    return res.json({
+        ok: true,
+        message: "Успешная регистрация!"
+    });
 });
 
 app.get('/api/uploads/create', (req, res) =>
@@ -187,12 +268,18 @@ app.get('/api/uploads/create', (req, res) =>
 app.post('/api/uploads/create', [sessionCheck], (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
     return multer.single('image')(req, res, (err) => {
-        if(err) {
+        if (err) {
             console.error(err.stack);
             if (err instanceof Multer.MulterError)
-                return res.json({ ok: false, message: "Ошибка при загрузке файла | Multer" });
+                return res.json({
+                    ok: false,
+                    message: "Ошибка при загрузке файла | Multer"
+                });
             else
-                return res.json({ ok: false, message: "Ошибка при загрузке файла | Неизвестно" });
+                return res.json({
+                    ok: false,
+                    message: "Ошибка при загрузке файла | Неизвестно"
+                });
         }
 
         const fileCode = Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 9);
@@ -202,59 +289,99 @@ app.post('/api/uploads/create', [sessionCheck], (req, res) => {
             author: session.id
         });
         upload.save();
-    
-        return res.json({ ok: true, message: "Файл загружен.", upload, url: `${config.host}/${req.file.destination + upload.code}` });
+
+        return res.json({
+            ok: true,
+            message: "Файл загружен.",
+            upload,
+            url: `${config.host}/${req.file.destination + upload.code}`
+        });
     });
 });
 
 app.post('/api/uploads/list', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
     const uploads = await Upload.findAll({
-        where: { author: session.id }
+        where: {
+            author: session.id
+        }
     });
 
-    return res.json({ ok: true, message: "Вот список всех ваших загрузок.", uploads });
+    return res.json({
+        ok: true,
+        message: "Вот список всех ваших загрузок.",
+        uploads
+    });
 });
 
 app.post('/api/uploads/delete', [sessionCheck, express.json()], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
 
-    let { id } = req.body;
-    if(!id) return res.json({ ok: false, message: "Не указан ID файла" });
+    let {
+        id
+    } = req.body;
+    if (!id) return res.json({
+        ok: false,
+        message: "Не указан ID файла"
+    });
 
     const uploads = await Upload.findAll({
-        where: { id, author: session.id }
+        where: {
+            id,
+            author: session.id
+        }
     });
-    if(!uploads.length) return res.json({ ok: false, message: "Файла с таким ID не существует." });
+    if (!uploads.length) return res.json({
+        ok: false,
+        message: "Файла с таким ID не существует."
+    });
 
     uploads[0].destroy();
-    return res.json({ ok: true, message: "Файл удалён." });
+    return res.json({
+        ok: true,
+        message: "Файл удалён."
+    });
 });
 
 app.post('/api/uploads/truncate', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    
+
     const uploads = await Upload.findAll({
-        where: { author: session.id }
+        where: {
+            author: session.id
+        }
     });
     for (let upload of uploads) {
         upload.destroy();
     }
 
-    return res.json({ ok: true, message: "Все ваши файлы были удалены." });
+    return res.json({
+        ok: true,
+        message: "Все ваши файлы были удалены."
+    });
 });
 
 app.post('/api/invite/list', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    if(!session.isAdmin) return res.json({ ok: false, message: "Вы не обладаете привилегиями администратора." });
+    if (!session.isAdmin) return res.json({
+        ok: false,
+        message: "Вы не обладаете привилегиями администратора."
+    });
 
     const invites = await Invite.findAll();
-    return res.json({ ok: true, message: "Вот список всех инвайт-кодов.", invites });
+    return res.json({
+        ok: true,
+        message: "Вот список всех инвайт-кодов.",
+        invites
+    });
 });
 
 app.post('/api/invite/create', [sessionCheck, express.json()], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    if(!session.isAdmin) return res.json({ ok: false, message: "Вы не обладаете привилегиями администратора." });
+    if (!session.isAdmin) return res.json({
+        ok: false,
+        message: "Вы не обладаете привилегиями администратора."
+    });
 
     const invite = Invite.build({
         code: Math.random().toString(36).substr(2, 9),
@@ -262,40 +389,74 @@ app.post('/api/invite/create', [sessionCheck, express.json()], async (req, res) 
     });
     invite.save();
 
-    return res.json({ ok: true, message: "Инвайт-код создан.", invite });
+    return res.json({
+        ok: true,
+        message: "Инвайт-код создан.",
+        invite
+    });
 });
 
 app.post('/api/invite/delete', [sessionCheck, express.json()], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    if(!session.isAdmin) return res.json({ ok: false, message: "Вы не обладаете привилегиями администратора." });
+    if (!session.isAdmin) return res.json({
+        ok: false,
+        message: "Вы не обладаете привилегиями администратора."
+    });
 
-    let { code } = req.body;
-    if(!code) return res.json({ ok: false, message: "Не указан инвайт-код." }); 
+    let {
+        code
+    } = req.body;
+    if (!code) return res.json({
+        ok: false,
+        message: "Не указан инвайт-код."
+    });
 
     const invites = await Invite.findAll({
-        where: { code }
+        where: {
+            code
+        }
     });
-    if(!invites.length) return res.json({ ok: false, message: "Недействительный инвайт-код." });
+    if (!invites.length) return res.json({
+        ok: false,
+        message: "Недействительный инвайт-код."
+    });
 
     invites[0].destroy();
-    return res.json({ ok: true, message: "Инвайт-код удалён." });
+    return res.json({
+        ok: true,
+        message: "Инвайт-код удалён."
+    });
 });
 
 app.post('/api/invite/truncate', [sessionCheck], async (req, res) => {
     const session = jwt.verify(req.cookies.session_hash, config.session_secret);
-    if(!session.isAdmin) return res.json({ ok: false, message: "Вы не обладаете привилегиями администратора." });
+    if (!session.isAdmin) return res.json({
+        ok: false,
+        message: "Вы не обладаете привилегиями администратора."
+    });
 
-    await Invite.destroy({ truncate: true });
-    return res.json({ ok: true, message: "Все инвайт-коды удалены." });
+    await Invite.destroy({
+        truncate: true
+    });
+    return res.json({
+        ok: true,
+        message: "Все инвайт-коды удалены."
+    });
 });
 
 app.use((req, res, next) =>
-    res.status(404).render('_error', { code: 404, message: "Страница не найдена." })
+    res.status(404).render('_error', {
+        code: 404,
+        message: "Страница не найдена."
+    })
 );
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    return res.status(500).render('_error', { code: 500, message: "Внутренняя ошибка сервера." });
+    return res.status(500).render('_error', {
+        code: 500,
+        message: "Внутренняя ошибка сервера."
+    });
 });
 
 app.listen(config.port, () => console.log(`* Listening requests on *:${config.port}..`));

@@ -1,12 +1,12 @@
 <%- include('_header.ejs', { title: "Регистрация" }); %>
-    <h1>Регистрация</h1>
-    <h3>Для дальнейшей работы на сайте требуется авторизация. Пожалуйста, зарегистрируйтесь.</h3>
-    <form onsubmit="return false;">
-        <input type="text" id="code" placeholder="Инвайт-код" required>
-        <br><input type="text" id="username" placeholder="Имя пользователя" required>
-        <br><input type="password" id="password" placeholder="Пароль" required>
-        <hr><button type="submit" onclick="register();">Регистрация</button>
-    </form>
-    Уже зарегистрированы? <a href="/login">Авторизация</a>
-    <b id="frontAlert"></b>
+<h1>Регистрация</h1>
+<h3>Для дальнейшей работы на сайте требуется авторизация. Пожалуйста, зарегистрируйтесь.</h3>
+<form onsubmit="return false;">
+    <input type="text" id="code" placeholder="Инвайт-код" required>
+    <br><input type="text" id="username" placeholder="Имя пользователя" required>
+    <br><input type="password" id="password" placeholder="Пароль" required>
+    <hr><button type="submit" onclick="register();">Регистрация</button>
+</form>
+Уже зарегистрированы? <a href="/login">Авторизация</a>
+<b id="frontAlert"></b>
 <%- include('_footer.ejs'); %>
