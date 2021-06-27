@@ -10,7 +10,14 @@
 
 ### Важная информация относительно базы данных
 1. При запуске проекта база данных создастся сама
-2. Базой данных (`config.database.dialect`) может быть `mysql`, `mariadb`, `postgres` и `mssql`
+2. Базой данных (`config.database.dialect`) может быть `mysql`, `mariadb`, `postgres` и `mssql`, но для этого нужно установить соответствующие библиотеки:
+```bash
+$ npm install --save pg pg-hstore # PostgreSQL
+$ npm install --save mysql2 # Уже установлен
+$ npm install --save mariadb
+$ npm install --save sqlite3
+$ npm install --save tedious # Microsoft SQL Server
+```
 3. Если требуется SQLite, в файле `index.js` **надо заменой с 31 по 35 строчку** вставить следующий код:
 ```js
 const sequelize = new Sequelize({
